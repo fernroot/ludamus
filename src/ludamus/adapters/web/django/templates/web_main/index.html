@@ -1,17 +1,10 @@
-<html>
+{% extends "base.html" %}
 
-<head>
-    <meta charset="utf-8" />
-    <title>Zagrajmy</title>
-</head>
+{% block title %}Ludamus{% endblock %}
 
-<body>
-    {% if request.user.is_authenticated %}
-    <h1>Welcome {{ request.user.username }}</h1>
-    <p><a href="{% url 'web:logout' %}">Logout</a></p>
-    {% else %}
-    <p><a href="{% url 'web:login' %}">Login / Signup</a></p>
-    {% endif %}
-</body>
+{% block header %}Welcome {{ request.user.username }}{% endblock %}
 
-</html>
+{% block description %}{% endblock %}
+
+{% block body %}
+{% endblock %}

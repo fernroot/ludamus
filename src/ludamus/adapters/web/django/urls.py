@@ -12,4 +12,5 @@ urlpatterns = [
     path("logout", views.logout, name="logout"),
     path("callback", views.callback, name="callback"),
     path("username", views.UsernameView.as_view(), name="username"),
+    path("redirect", views.redirect_view, name="redirect"),
 ]

@@ -24,8 +24,8 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS: list[str] = []
-
+ALLOWED_HOSTS: list[str] = [os.getenv("ALLOWED_HOST", "")]
+SESSION_COOKIE_DOMAIN = os.getenv("ALLOWED_HOST", "")
 
 # Application definition
 
@@ -36,6 +36,10 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django.contrib.sites",
+    # Third Party
+    "django_bootstrap5",
+    "django_bootstrap_icons",
     # First Party
     "ludamus.adapters.web.django.apps.WebMainConfig",
     "ludamus.adapters.db.django.apps.DBMainConfig",
@@ -61,6 +65,7 @@ TEMPLATES = [
         "OPTIONS": {
             "context_processors": [
                 "django.template.context_processors.request",
+                "ludamus.adapters.web.django.context_processors.sites",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
             ]
@@ -122,6 +127,10 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # Auth
 
 AUTH_USER_MODEL = "db_main.User"
+
+# Sites
+
+ROOT_DOMAIN = os.getenv("ROOT_DOMAIN")
 
 # Auth0
 

@@ -1,5 +1,14 @@
+{% extends "base.html" %}
+
+{% load django_bootstrap5 %}
+
+{% block title %}Set username{% endblock %}
+
+{% block body %}
 <form action="{% url 'web:username' %}" method="post">
     {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="OK">
+    {% bootstrap_form form %}
+
+    {% bootstrap_button button_type="submit" content="OK" %}
 </form>
+{% endblock %}

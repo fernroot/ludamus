@@ -7,7 +7,10 @@ from django import forms
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.contrib.auth import login as django_login
+from django.contrib.auth import logout as django_logout
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.sites.models import Site
+from django.contrib.sites.shortcuts import get_current_site
 from django.db.models.query import QuerySet
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect
@@ -25,8 +28,16 @@ else:
 
 
 def login(request: HttpRequest) -> HttpResponse:
+    root_domain = Site.objects.get(domain=settings.ROOT_DOMAIN).domain
+    next_path = request.GET.get("next")
+    if request.get_host() != root_domain:
+        return redirect(
+            f'{request.scheme}://{root_domain}{reverse("web:login")}?next={next_path}'
+        )
+
     return oauth.auth0.authorize_redirect(  # type: ignore [no-any-return]
-        request, request.build_absolute_uri(reverse("web:callback"))
+        request,
+        request.build_absolute_uri(reverse("web:callback") + f"?next={next_path}"),
     )
 
 
@@ -55,22 +66,31 @@ def callback(request: HttpRequest) -> HttpResponse:
         django_login(request, user)
         return redirect(request.build_absolute_uri(reverse("web:username")))
 
-    return redirect(request.build_absolute_uri(reverse("web:index")))
+    next_path = request.GET.get("next")
+    return redirect(next_path or request.build_absolute_uri(reverse("web:index")))
 
 
 def logout(request: HttpRequest) -> HttpResponse:
-    request.session.clear()
+    django_logout(request)
+    root_domain = Site.objects.get(domain=settings.ROOT_DOMAIN).domain
+    last = get_current_site(request).domain
+    return_to = f'{request.scheme}://{root_domain}{reverse("web:redirect")}?last={last}'
 
     return redirect(
         f"https://{settings.AUTH0_DOMAIN}/v2/logout?"
         + urlencode(
-            {
-                "returnTo": request.build_absolute_uri(reverse("web:index")),
-                "client_id": settings.AUTH0_CLIENT_ID,
-            },
+            {"returnTo": return_to, "client_id": settings.AUTH0_CLIENT_ID},
             quote_via=quote_plus,
         )
     )
+
+
+def redirect_view(request: HttpRequest) -> HttpResponse:
+    redirect_url = reverse("web:index")
+    if last := request.GET.get("last"):
+        redirect_url = f"{request.scheme}://{last}{redirect_url}"
+
+    return redirect(redirect_url)
 
 
 def index(request: HttpRequest) -> HttpResponse:
